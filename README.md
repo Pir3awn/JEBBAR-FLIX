@@ -1,5 +1,7 @@
 # JEBBARFLIX - Application de Gestion de Films
 
+Lien pour visiter le site : https://projet-efm.vercel.app/
+
 Une application web moderne pour la gestion et la découverte de films, construite avec Vite/React.js et l'API TMDB.
 
 ## Fonctionnalités
