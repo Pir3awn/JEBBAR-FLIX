@@ -29,6 +29,73 @@ function MovieDetails() {
   const [showVideo, setShowVideo] = useState(false);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
+  const commonTransition = {
+    transition: 'all 0.3s ease'
+  };
+
+  const hoverScale = {
+    '&:hover': {
+      transform: 'scale(1.05)',
+      bgcolor: 'rgba(0,0,0,0.7)'
+    },
+    ...commonTransition
+  };
+
+  const controlButton = {
+    color: 'white',
+    bgcolor: 'rgba(0,0,0,0.5)',
+    ...hoverScale
+  };
+
+  const gradientOverlay = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  };
+
+  const movieInfoBox = {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    p: 2,
+    background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 40%)',
+    opacity: 0,
+    transform: 'translateY(10px)',
+    ...commonTransition
+  };
+
+  const absoluteFill = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+  };
+
+  const movieImage = {
+    ...absoluteFill,
+    objectFit: 'cover'
+  };
+
+  const movieTitleStyle = {
+    color: 'white',
+    fontWeight: 700,
+    textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+  };
+
+  const metadataStyle = {
+    color: 'white',
+    fontSize: '0.9rem',
+    mb: 1
+  };
+
+  const labelStyle = {
+    color: '#777'
+  };
+
   useEffect(() => {
     const fetchMovieData = async () => {
       setLoading(true);
@@ -58,13 +125,7 @@ function MovieDetails() {
   if (loading) {
     return (
       <Box 
-        sx={{ 
-          height: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#141414'
-        }}
+        className="loading-container"
       >
         <CircularProgress sx={{ color: '#e50914' }} />
       </Box>
@@ -116,13 +177,7 @@ function MovieDetails() {
           top: 20,
           left: 20,
           zIndex: 1000,
-          bgcolor: 'rgba(0,0,0,0.5)',
-          color: 'white',
-          '&:hover': {
-            bgcolor: 'rgba(0,0,0,0.7)',
-            transform: 'scale(1.1)'
-          },
-          transition: 'all 0.3s ease'
+          ...controlButton
         }}
       >
         <ArrowBackIcon />
@@ -136,10 +191,7 @@ function MovieDetails() {
         overflow: 'hidden',
         '&::after': {
           content: '""',
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
+          ...gradientOverlay,
           height: '70%',
           background: 'linear-gradient(180deg, transparent, rgba(20,20,20,0.8) 50%, #141414 100%)',
           pointerEvents: 'none',
@@ -199,11 +251,7 @@ function MovieDetails() {
             {/* Video Controls Overlay */}
             <Box
               sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
+                ...gradientOverlay,
                 background: 'linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.7) 100%)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -270,29 +318,13 @@ function MovieDetails() {
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <IconButton
                     onClick={() => setMuted(!muted)}
-                    sx={{
-                      color: 'white',
-                      bgcolor: 'rgba(0,0,0,0.5)',
-                      '&:hover': { 
-                        bgcolor: 'rgba(0,0,0,0.7)',
-                        transform: 'scale(1.1)'
-                      },
-                      transition: 'all 0.2s ease'
-                    }}
+                    sx={controlButton}
                   >
                     {muted ? <VolumeOffIcon /> : <VolumeUpIcon />}
                   </IconButton>
                   <IconButton
                     onClick={() => setShowVideo(false)}
-                    sx={{
-                      color: 'white',
-                      bgcolor: 'rgba(0,0,0,0.5)',
-                      '&:hover': { 
-                        bgcolor: 'rgba(0,0,0,0.7)',
-                        transform: 'scale(1.1)'
-                      },
-                      transition: 'all 0.2s ease'
-                    }}
+                    sx={controlButton}
                   >
                     <CloseIcon />
                   </IconButton>
@@ -314,9 +346,7 @@ function MovieDetails() {
                 component="img"
                 src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
                 sx={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
+                  ...movieImage,
                   filter: 'brightness(0.7)',
                   transition: 'transform 0.3s ease',
                   '&:hover': {
@@ -365,10 +395,8 @@ function MovieDetails() {
                 variant="h2" 
                 className="movie-title"
                 sx={{
+                  ...movieTitleStyle,
                   fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
-                  fontWeight: 700,
-                  color: 'white',
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
                   mb: 3,
                   maxWidth: '800px',
                   animation: 'slideUp 0.8s ease'
@@ -445,34 +473,34 @@ function MovieDetails() {
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Typography sx={{ mb: 1 }}>
-                <span style={{ color: '#777' }}>Réalisateur: </span>
+              <Typography sx={{ ...metadataStyle }}>
+                <span style={labelStyle}>Réalisateur: </span>
                 {movie?.credits?.crew?.find(person => person.job === 'Director')?.name || 'Non disponible'}
               </Typography>
-              <Typography sx={{ mb: 1 }}>
-                <span style={{ color: '#777' }}>Scénariste: </span>
+              <Typography sx={{ ...metadataStyle }}>
+                <span style={labelStyle}>Scénariste: </span>
                 {movie?.credits?.crew?.find(person => person.job === 'Screenplay')?.name || 'Non disponible'}
               </Typography>
-              <Typography sx={{ mb: 1 }}>
-                <span style={{ color: '#777' }}>Distribution principale: </span>
+              <Typography sx={{ ...metadataStyle }}>
+                <span style={labelStyle}>Distribution principale: </span>
                 {movie?.credits?.cast?.slice(0, 5).map(actor => actor.name).join(', ') || 'Non disponible'}
               </Typography>
-              <Typography sx={{ mb: 1 }}>
-                <span style={{ color: '#777' }}>Genres: </span>
+              <Typography sx={{ ...metadataStyle }}>
+                <span style={labelStyle}>Genres: </span>
                 {movie?.genres?.map(genre => genre.name).join(', ')}
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography sx={{ mb: 1 }}>
-                <span style={{ color: '#777' }}>Date de sortie: </span>
+              <Typography sx={{ ...metadataStyle }}>
+                <span style={labelStyle}>Date de sortie: </span>
                 {new Date(movie?.release_date).toLocaleDateString('fr-FR', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric'
                 })}
               </Typography>
-              <Typography sx={{ mb: 1 }}>
-                <span style={{ color: '#777' }}>Langue originale: </span>
+              <Typography sx={{ ...metadataStyle }}>
+                <span style={labelStyle}>Langue originale: </span>
                 {movie?.original_language?.toUpperCase()}
               </Typography>
             </Grid>
@@ -524,15 +552,7 @@ function MovieDetails() {
                     paddingTop: '150%',
                     borderRadius: '4px',
                     overflow: 'hidden',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'scale(1.05)',
-                      zIndex: 1,
-                      '& .movie-info': { 
-                        opacity: 1,
-                        transform: 'translateY(0)'
-                      }
-                    }
+                    ...hoverScale
                   }}
                 >
                   <Box
@@ -542,34 +562,16 @@ function MovieDetails() {
                       : 'https://via.placeholder.com/500x750?text=No+Image'
                     }
                     alt={movie.title}
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
+                    sx={movieImage}
                   />
                   <Box
                     className="movie-info"
-                    sx={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      p: 2,
-                      background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 40%)',
-                      opacity: 0,
-                      transform: 'translateY(10px)',
-                      transition: 'all 0.3s ease'
-                    }}
+                    sx={movieInfoBox}
                   >
                     <Typography
                       sx={{
-                        color: 'white',
+                        ...movieTitleStyle,
                         fontSize: '0.9rem',
-                        fontWeight: 600,
                         mb: 0.5,
                         lineHeight: 1.2
                       }}

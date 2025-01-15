@@ -1,17 +1,28 @@
 import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton } from '@mui/material';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import HomeIcon from '@mui/icons-material/Home';
 import { useState, useEffect } from 'react';
 
 function Navbar() {
-  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
+  const navigate = useNavigate();
+
+  const buttonStyle = {
+    textTransform: 'none',
+    color: 'white',
+    '&:hover': { color: 'rgba(255,255,255,0.7)' }
+  };
+
+  const mobileIconStyle = {
+    color: 'white',
+    display: { xs: 'flex', md: 'none' }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100);
+      setIsScrolled(window.scrollY > 0);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -24,9 +35,9 @@ function Navbar() {
     <AppBar 
       position="fixed" 
       className={`navbar ${isScrolled ? 'scrolled' : ''}`}
-      elevation={0}
       sx={{
-        background: isScrolled ? 'rgb(20, 20, 20)' : 'linear-gradient(180deg, rgba(0,0,0,0.7) 10%, transparent)',
+        boxShadow: 'none',
+        background: 'transparent',
         transition: 'background-color 0.3s ease',
       }}
     >
@@ -51,36 +62,21 @@ function Navbar() {
             <Button
               component={Link}
               to="/"
-              sx={{
-                color: 'white',
-                '&:hover': { opacity: 0.7 },
-                textTransform: 'none',
-                fontSize: '0.9rem'
-              }}
+              sx={buttonStyle}
             >
               Accueil
             </Button>
             <Button
               component={Link}
               to="/search"
-              sx={{
-                color: 'white',
-                '&:hover': { opacity: 0.7 },
-                textTransform: 'none',
-                fontSize: '0.9rem'
-              }}
+              sx={buttonStyle}
             >
               Rechercher
             </Button>
             <Button
               component={Link}
               to="/ajouter"
-              sx={{
-                color: 'white',
-                '&:hover': { opacity: 0.7 },
-                textTransform: 'none',
-                fontSize: '0.9rem'
-              }}
+              sx={buttonStyle}
               startIcon={<AddIcon />}
             >
               Ajouter
@@ -92,10 +88,7 @@ function Navbar() {
           <IconButton
             component={Link}
             to="/search"
-            sx={{
-              color: 'white',
-              display: { xs: 'flex', md: 'none' }
-            }}
+            sx={mobileIconStyle}
           >
             <SearchIcon />
           </IconButton>
@@ -103,10 +96,7 @@ function Navbar() {
           <IconButton
             component={Link}
             to="/ajouter"
-            sx={{
-              color: 'white',
-              display: { xs: 'flex', md: 'none' }
-            }}
+            sx={mobileIconStyle}
           >
             <AddIcon />
           </IconButton>

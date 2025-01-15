@@ -58,17 +58,17 @@ function Home() {
     fetchAllMovies();
   }, []);
 
-  if (loading || !featuredMovie) {
+  if (!featuredMovie) {
     return (
-      <Box sx={{ 
-        height: '100vh', 
-        backgroundColor: '#141414',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        {/* Add a nice loading animation here */}
-      </Box>
+      <Box 
+        sx={{ 
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#141414'
+        }}
+      />
     );
   }
 
@@ -169,6 +169,20 @@ function MovieRow({ title, movies }) {
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
+  const arrowButtonStyle = {
+    position: 'absolute',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    zIndex: 2,
+    bgcolor: 'rgba(0,0,0,0.7)',
+    color: 'white',
+    '&:hover': { 
+      bgcolor: 'rgba(0,0,0,0.9)',
+      transform: 'translateY(-50%) scale(1.1)'
+    },
+    transition: 'all 0.2s ease'
+  };
+
   const handleScroll = () => {
     if (rowRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = rowRef.current;
@@ -212,18 +226,8 @@ function MovieRow({ title, movies }) {
           <IconButton
             onClick={() => scroll('left')}
             sx={{
-              position: 'absolute',
-              left: -5,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 2,
-              bgcolor: 'rgba(0,0,0,0.7)',
-              color: 'white',
-              '&:hover': { 
-                bgcolor: 'rgba(0,0,0,0.9)',
-                transform: 'translateY(-50%) scale(1.1)'
-              },
-              transition: 'all 0.2s ease'
+              ...arrowButtonStyle,
+              left: -5
             }}
           >
             <NavigateBeforeIcon />
@@ -251,18 +255,8 @@ function MovieRow({ title, movies }) {
           <IconButton
             onClick={() => scroll('right')}
             sx={{
-              position: 'absolute',
-              right: -5,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 2,
-              bgcolor: 'rgba(0,0,0,0.7)',
-              color: 'white',
-              '&:hover': { 
-                bgcolor: 'rgba(0,0,0,0.9)',
-                transform: 'translateY(-50%) scale(1.1)'
-              },
-              transition: 'all 0.2s ease'
+              ...arrowButtonStyle,
+              right: -5
             }}
           >
             <NavigateNextIcon />
@@ -274,6 +268,26 @@ function MovieRow({ title, movies }) {
 }
 
 function MovieCard({ movie }) {
+  const movieInfoStyle = {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 40%)',
+    p: 1.5,
+    opacity: 0,
+    transform: 'translateY(10px)',
+    transition: 'all 0.3s ease'
+  };
+
+  const movieTitleStyle = {
+    color: 'white',
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    mb: 0.5,
+    lineHeight: 1.2
+  };
+
   return (
     <Box
       component={Link}
@@ -310,27 +324,9 @@ function MovieCard({ movie }) {
       
       <Box
         className="movie-info"
-        sx={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 40%)',
-          p: 1.5,
-          opacity: 0,
-          transform: 'translateY(10px)',
-          transition: 'all 0.3s ease'
-        }}
+        sx={movieInfoStyle}
       >
-        <Typography
-          sx={{
-            color: 'white',
-            fontSize: '0.9rem',
-            fontWeight: 600,
-            mb: 0.5,
-            lineHeight: 1.2
-          }}
-        >
+        <Typography sx={movieTitleStyle}>
           {movie.title}
         </Typography>
         
