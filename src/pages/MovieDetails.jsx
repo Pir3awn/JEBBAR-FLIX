@@ -1,197 +1,715 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import Grid from '@mui/material/Grid';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
+  Box, 
   Container, 
   Typography, 
-  Paper, 
-  Box,
-  CircularProgress,
+  Button, 
+  IconButton,
   Chip,
-  Rating
+  Fade,
+  CircularProgress,
+  Skeleton,
+  Alert,
+  Snackbar,
+  Grid
 } from '@mui/material';
-import { getMovieDetails } from '../services/api';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import CloseIcon from '@mui/icons-material/Close';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import StarOutlineIcon from '@mui/icons-material/StarOutline';
+import StarIcon from '@mui/icons-material/Star';
+import { getMovieDetails, getMovieVideos, getSimilarMovies } from '../services/api';
 
 function MovieDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [movie, setMovie] = useState(null);
+  const [videos, setVideos] = useState([]);
+  const [similarMovies, setSimilarMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [muted, setMuted] = useState(true);
+  const [showVideo, setShowVideo] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [isStarred, setIsStarred] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  // Check if movie is in favorites on load
+  useEffect(() => {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    setIsStarred(favorites.some(fav => fav.id === Number(id)));
+  }, [id]);
+
+  // Handle favorites
+  const handleFavoriteClick = () => {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    
+    if (isStarred) {
+      // Remove from favorites
+      const newFavorites = favorites.filter(fav => fav.id !== movie.id);
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+      setSnackbarMessage('Retiré des favoris');
+    } else {
+      // Add to favorites
+      const newFavorite = {
+        id: movie.id,
+        title: movie.title,
+        poster_path: movie.poster_path,
+        vote_average: movie.vote_average,
+        release_date: movie.release_date
+      };
+      localStorage.setItem('favorites', JSON.stringify([...favorites, newFavorite]));
+      setSnackbarMessage('Ajouté aux favoris');
+    }
+    
+    setIsStarred(!isStarred);
+    setSnackbarOpen(true);
+  };
 
   useEffect(() => {
-    const fetchMovieDetails = async () => {
+    const fetchMovieData = async () => {
+      setLoading(true);
       try {
-        const response = await getMovieDetails(id);
-        setMovie(response.data);
+        const [movieData, videosData, similarData] = await Promise.all([
+          getMovieDetails(id),
+          getMovieVideos(id),
+          getSimilarMovies(id)
+        ]);
+
+        setMovie(movieData.data);
+        setVideos(videosData.data.results);
+        setSimilarMovies(similarData.data.results);
+
+        setTimeout(() => setShowVideo(true), 1000);
       } catch (error) {
-        console.error('Erreur lors de la récupération des détails:', error);
+        console.error('Error fetching movie data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMovieDetails();
+    fetchMovieData();
+    window.scrollTo(0, 0);
   }, [id]);
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress sx={{ color: 'var(--secondary-color)' }} />
+      <Box 
+        sx={{ 
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#141414'
+        }}
+      >
+        <CircularProgress sx={{ color: '#e50914' }} />
       </Box>
     );
   }
 
   if (!movie) {
     return (
-      <Container>
-        <Typography variant="h5" className="section-title">Film non trouvé</Typography>
-      </Container>
+      <Box 
+        sx={{ 
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#141414',
+          color: 'white',
+          gap: 2
+        }}
+      >
+        <Typography variant="h5">Film non trouvé</Typography>
+        <Button 
+          variant="contained" 
+          onClick={() => navigate('/')}
+          sx={{
+            bgcolor: '#e50914',
+            '&:hover': { bgcolor: '#b2070f' }
+          }}
+        >
+          Retour à l'accueil
+        </Button>
+      </Box>
     );
   }
 
-  return (
-    <Container sx={{ py: 6 }}>
-      <Box sx={{ 
-        position: 'relative',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '400px',
-          background: `linear-gradient(to bottom, rgba(3, 37, 65, 0.8), rgba(3, 37, 65, 0.4)), url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'blur(2px)',
-          zIndex: -1,
-          borderRadius: '30px'
-        }
-      }}>
-        <Grid container spacing={4} sx={{ pt: 4, pb: 8, px: 4 }}>
-          <Grid item xs={12} md={4}>
-            <img
-              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-              alt={movie.title}
-              style={{ 
-                width: '100%', 
-                borderRadius: '16px',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <Typography 
-              variant="h3" 
-              gutterBottom
-              sx={{ 
-                color: 'white',
-                fontFamily: 'var(--heading-font)',
-                fontWeight: 800,
-                textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
-              }}
-            >
-              {movie.title}
-            </Typography>
-            <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {movie.genres?.map(genre => (
-                <Chip 
-                  key={genre.id} 
-                  label={genre.name}
-                  sx={{ 
-                    backgroundColor: 'rgba(255,255,255,0.1)',
-                    color: 'white',
-                    fontFamily: 'var(--body-font)'
-                  }}
-                />
-              ))}
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-              <Rating 
-                value={movie.vote_average / 2} 
-                precision={0.5} 
-                readOnly
-                sx={{ color: 'var(--secondary-color)' }}
-              />
-              <Typography 
-                sx={{ 
-                  color: 'white',
-                  fontFamily: 'var(--body-font)',
-                  fontWeight: 500
-                }}
-              >
-                {movie.vote_average.toFixed(1)}/10
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
-      </Box>
+  const trailer = videos.find(v => v.type === 'Trailer') || videos[0];
 
-      <Paper 
-        elevation={3} 
-        sx={{ 
-          p: 4, 
-          mt: -4, 
-          borderRadius: '20px',
-          background: 'white',
-          position: 'relative'
+  return (
+    <Box sx={{ 
+      backgroundColor: '#141414', 
+      minHeight: '100vh',
+      position: 'relative'
+    }}>
+      {/* Back Button */}
+      <IconButton
+        onClick={() => navigate(-1)}
+        sx={{
+          position: 'fixed',
+          top: 20,
+          left: 20,
+          zIndex: 1000,
+          bgcolor: 'rgba(0,0,0,0.5)',
+          color: 'white',
+          '&:hover': {
+            bgcolor: 'rgba(0,0,0,0.7)',
+            transform: 'scale(1.1)'
+          },
+          transition: 'all 0.3s ease'
         }}
       >
-        <Typography 
-          variant="h5" 
-          gutterBottom
-          sx={{ 
-            fontFamily: 'var(--heading-font)',
-            fontWeight: 700,
-            color: 'var(--primary-color)',
-            mb: 3
+        <ArrowBackIcon />
+      </IconButton>
+
+      {/* Hero Section */}
+      <Box sx={{ 
+        position: 'relative',
+        height: '100vh',
+        width: '100%',
+        overflow: 'hidden',
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '70%',
+          background: 'linear-gradient(180deg, transparent, rgba(20,20,20,0.8) 50%, #141414 100%)',
+          pointerEvents: 'none',
+          zIndex: 1
+        }
+      }}>
+        {showVideo && trailer ? (
+          <Box 
+            className="video-container"
+            sx={{ 
+              width: '100%', 
+              height: '100%', 
+              position: 'relative',
+              backgroundColor: '#000',
+            }}
+          >
+            <Box
+              sx={{
+                position: 'relative',
+                height: '100%',
+                overflow: 'hidden',
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '100%',
+                  height: '100%',
+                  '& iframe': {
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                  }
+                }}
+              >
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${trailer.key}?autoplay=1&mute=${muted ? 1 : 0}&controls=0&modestbranding=1&loop=1&playlist=${trailer.key}&rel=0&iv_load_policy=3&fs=0&playsinline=1`}
+                  title={`${movie.title} Trailer`}
+                  frameBorder="0"
+                  allowFullScreen
+                  allow="autoplay"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                  }}
+                  onLoad={() => setIsVideoLoaded(true)}
+                />
+              </Box>
+            </Box>
+
+            {/* Video Controls Overlay */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.7) 100%)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                padding: 3,
+                opacity: 0,
+                transition: 'opacity 0.3s ease',
+                '&:hover': {
+                  opacity: 1
+                }
+              }}
+            >
+              {/* Top Controls */}
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'flex-end',
+                p: 2
+              }}>
+                <IconButton
+                  onClick={() => setShowVideo(false)}
+                  sx={{
+                    color: 'white',
+                    bgcolor: 'rgba(0,0,0,0.5)',
+                    '&:hover': { 
+                      bgcolor: 'rgba(0,0,0,0.7)',
+                      transform: 'scale(1.1)'
+                    },
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+
+              {/* Bottom Controls */}
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                p: 2
+              }}>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <Typography 
+                    variant="subtitle1" 
+                    sx={{ 
+                      color: 'white',
+                      fontWeight: 600,
+                      textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                    }}
+                  >
+                    Bande annonce officielle
+                  </Typography>
+                  <Chip
+                    label={movie.original_language.toUpperCase()}
+                    size="small"
+                    sx={{
+                      bgcolor: 'rgba(255,255,255,0.2)',
+                      color: 'white',
+                      borderRadius: 1
+                    }}
+                  />
+                </Box>
+                
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <IconButton
+                    onClick={() => setMuted(!muted)}
+                    sx={{
+                      color: 'white',
+                      bgcolor: 'rgba(0,0,0,0.5)',
+                      '&:hover': { 
+                        bgcolor: 'rgba(0,0,0,0.7)',
+                        transform: 'scale(1.1)'
+                      },
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {muted ? <VolumeOffIcon /> : <VolumeUpIcon />}
+                  </IconButton>
+                  <IconButton
+                    onClick={() => setShowVideo(false)}
+                    sx={{
+                      color: 'white',
+                      bgcolor: 'rgba(0,0,0,0.5)',
+                      '&:hover': { 
+                        bgcolor: 'rgba(0,0,0,0.7)',
+                        transform: 'scale(1.1)'
+                      },
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        ) : (
+          <Fade in timeout={1000}>
+            <Box
+              sx={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden',
+              }}
+            >
+              <Box
+                component="img"
+                src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  filter: 'brightness(0.7)',
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'scale(1.05)',
+                  }
+                }}
+              />
+              
+              {/* Backdrop Overlay */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(0deg, rgba(20,20,20,1) 0%, rgba(20,20,20,0.7) 50%, rgba(20,20,20,0.4) 100%)',
+                }}
+              />
+            </Box>
+          </Fade>
+        )}
+
+        {/* Movie Info Overlay */}
+        <Box 
+          sx={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: { xs: 3, md: 6 },
+            paddingBottom: { xs: 6, md: 8 },
+            background: 'linear-gradient(0deg, rgba(20,20,20,1) 0%, rgba(20,20,20,0.8) 50%, transparent 100%)',
+            zIndex: 2,
           }}
         >
-          Synopsis
-        </Typography>
-        <Typography 
-          variant="body1" 
-          paragraph
-          sx={{ 
-            fontFamily: 'var(--body-font)',
-            lineHeight: 1.8,
-            color: 'var(--text-secondary)',
-            mb: 4
-          }}
+          {loading ? (
+            <Box sx={{ width: '50%' }}>
+              <Skeleton variant="text" width="80%" height={80} sx={{ bgcolor: 'rgba(255,255,255,0.1)' }} />
+              <Skeleton variant="text" width="60%" height={30} sx={{ bgcolor: 'rgba(255,255,255,0.1)' }} />
+              <Skeleton variant="text" width="40%" height={30} sx={{ bgcolor: 'rgba(255,255,255,0.1)' }} />
+            </Box>
+          ) : (
+            <>
+              <Typography 
+                variant="h2" 
+                className="movie-title"
+                sx={{
+                  fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
+                  fontWeight: 700,
+                  color: 'white',
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                  mb: 2,
+                  maxWidth: '800px',
+                  animation: 'slideUp 0.8s ease'
+                }}
+              >
+                {movie?.title}
+              </Typography>
+
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 2, 
+                mb: 3,
+                animation: 'slideUp 1s ease 0.2s',
+                opacity: 0,
+                animationFillMode: 'forwards'
+              }}>
+                <Button
+                  variant="contained"
+                  startIcon={<InfoOutlinedIcon />}
+                  sx={{
+                    bgcolor: 'white',
+                    color: 'black',
+                    '&:hover': {
+                      bgcolor: 'rgba(255,255,255,0.75)',
+                      transform: 'scale(1.05)'
+                    },
+                    px: 4,
+                    py: 1.5,
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  Plus d'infos
+                </Button>
+                <Button
+                  variant="contained"
+                  startIcon={isStarred ? <StarIcon /> : <StarOutlineIcon />}
+                  onClick={handleFavoriteClick}
+                  sx={{
+                    bgcolor: 'rgba(109, 109, 110, 0.7)',
+                    color: 'white',
+                    '&:hover': {
+                      bgcolor: 'rgba(109, 109, 110, 0.4)',
+                      transform: 'scale(1.05)'
+                    },
+                    px: 4,
+                    py: 1.5,
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  {isStarred ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                </Button>
+              </Box>
+
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 2,
+                flexWrap: 'wrap',
+                mb: 3
+              }}>
+                <Typography sx={{ 
+                  color: '#46d369',
+                  fontWeight: 600
+                }}>
+                  {Math.round(movie.vote_average * 10)}% pertinent
+                </Typography>
+                <Typography sx={{ color: 'white' }}>
+                  {new Date(movie.release_date).getFullYear()}
+                </Typography>
+                <Typography sx={{ 
+                  color: 'white',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  px: 1,
+                  borderRadius: 1
+                }}>
+                  {movie.adult ? '18+' : 'Tout public'}
+                </Typography>
+                <Typography sx={{ color: 'white' }}>
+                  {Math.floor(movie.runtime / 60)}h {movie.runtime % 60}min
+                </Typography>
+              </Box>
+
+              <Typography sx={{ 
+                color: 'white',
+                maxWidth: '800px',
+                fontSize: '1.1rem',
+                lineHeight: 1.5,
+                mb: 3
+              }}>
+                {movie.overview}
+              </Typography>
+
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {movie.genres.map((genre) => (
+                  <Chip
+                    key={genre.id}
+                    label={genre.name}
+                    sx={{
+                      bgcolor: 'rgba(255,255,255,0.1)',
+                      color: 'white',
+                      '&:hover': {
+                        bgcolor: 'rgba(255,255,255,0.2)',
+                      }
+                    }}
+                  />
+                ))}
+              </Box>
+            </>
+          )}
+        </Box>
+      </Box>
+
+      {/* Additional Sections */}
+      <Container maxWidth="xl" sx={{ py: 6 }}>
+        {/* Additional Info - Moved to top */}
+        <Box sx={{ color: 'rgba(255,255,255,0.7)', mb: 6 }}>
+          <Typography variant="h6" sx={{ color: 'white', mb: 2 }}>
+            À propos de {movie.title}
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <Typography sx={{ mb: 1 }}>
+                <span style={{ color: '#777' }}>Réalisateur: </span>
+                {movie?.credits?.crew?.find(person => person.job === 'Director')?.name || 'Non disponible'}
+              </Typography>
+              <Typography sx={{ mb: 1 }}>
+                <span style={{ color: '#777' }}>Scénariste: </span>
+                {movie?.credits?.crew?.find(person => person.job === 'Screenplay')?.name || 'Non disponible'}
+              </Typography>
+              <Typography sx={{ mb: 1 }}>
+                <span style={{ color: '#777' }}>Distribution principale: </span>
+                {movie?.credits?.cast?.slice(0, 5).map(actor => actor.name).join(', ') || 'Non disponible'}
+              </Typography>
+              <Typography sx={{ mb: 1 }}>
+                <span style={{ color: '#777' }}>Genres: </span>
+                {movie?.genres?.map(genre => genre.name).join(', ')}
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography sx={{ mb: 1 }}>
+                <span style={{ color: '#777' }}>Date de sortie: </span>
+                {new Date(movie?.release_date).toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                })}
+              </Typography>
+              <Typography sx={{ mb: 1 }}>
+                <span style={{ color: '#777' }}>Budget: </span>
+                {movie?.budget ? `${(movie.budget / 1000000).toFixed(1)} M$` : 'Non disponible'}
+              </Typography>
+              <Typography sx={{ mb: 1 }}>
+                <span style={{ color: '#777' }}>Recettes: </span>
+                {movie?.revenue ? `${(movie.revenue / 1000000).toFixed(1)} M$` : 'Non disponible'}
+              </Typography>
+              <Typography sx={{ mb: 1 }}>
+                <span style={{ color: '#777' }}>Langue originale: </span>
+                {movie?.original_language?.toUpperCase()}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* Similar Movies Section */}
+        {similarMovies.length > 0 && (
+          <Box sx={{ mt: 4, mb: 8 }}>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                color: 'white',
+                mb: 4,
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
+              <span>Titres similaires</span>
+              <Chip 
+                label={similarMovies.length}
+                size="small"
+                sx={{ 
+                  bgcolor: 'rgba(255,255,255,0.1)',
+                  color: 'white'
+                }}
+              />
+            </Typography>
+            
+            <Box sx={{ 
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: 'repeat(2, 1fr)',
+                sm: 'repeat(3, 1fr)',
+                md: 'repeat(4, 1fr)',
+                lg: 'repeat(5, 1fr)'
+              },
+              gap: 2.5,
+              '& > *': {
+                minHeight: '280px'
+              }
+            }}>
+              {similarMovies.slice(0, 10).map((movie) => (
+                <Box
+                  key={movie.id}
+                  component={Link}
+                  to={`/film/${movie.id}`}
+                  sx={{
+                    position: 'relative',
+                    paddingTop: '150%',
+                    borderRadius: '4px',
+                    overflow: 'hidden',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                      zIndex: 1,
+                      '& .movie-info': { 
+                        opacity: 1,
+                        transform: 'translateY(0)'
+                      }
+                    }
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                    alt={movie.title}
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                  />
+                  <Box
+                    className="movie-info"
+                    sx={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      p: 2,
+                      background: 'linear-gradient(transparent, rgba(0,0,0,0.9) 30%, rgba(0,0,0,0.95))',
+                      opacity: 0,
+                      transform: 'translateY(20px)',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    <Typography sx={{ 
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      mb: 1,
+                      textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                    }}>
+                      {movie.title}
+                    </Typography>
+                    <Box sx={{ 
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}>
+                      <Typography sx={{ 
+                        color: '#46d369',
+                        fontSize: '0.9rem',
+                        fontWeight: 500
+                      }}>
+                        {Math.round(movie.vote_average * 10)}% Match
+                      </Typography>
+                      <Typography sx={{ 
+                        color: '#777',
+                        fontSize: '0.9rem'
+                      }}>
+                        {movie.release_date?.split('-')[0]}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
+      </Container>
+
+      {/* Add Snackbar for favorites feedback */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbarOpen(false)} 
+          severity="success" 
+          sx={{ width: '100%' }}
         >
-          {movie.overview}
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-              Date de sortie
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'var(--text-secondary)' }}>
-              {new Date(movie.release_date).toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-              })}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-              Durée
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'var(--text-secondary)' }}>
-              {movie.runtime} minutes
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-              Budget
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'var(--text-secondary)' }}>
-              {movie.budget.toLocaleString('fr-FR')} $
-            </Typography>
-          </Grid>
-        </Grid>
-      </Paper>
-    </Container>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }
 

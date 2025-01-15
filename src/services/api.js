@@ -24,5 +24,22 @@ export const searchMovies = (query) => {
 };
 
 export const getMovieDetails = (movieId) => {
-  return api.get(`/movie/${movieId}`);
-}; 
+  return axios.get(`${BASE_URL}/movie/${movieId}?api_key=${API_KEY}&language=fr-FR&append_to_response=credits`);
+};
+
+export const getMovieVideos = (movieId) => {
+  return axios.get(`${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}&language=fr-FR`);
+};
+
+export const getSimilarMovies = (movieId) => {
+  return axios.get(`${BASE_URL}/movie/${movieId}/similar?api_key=${API_KEY}&language=fr-FR&page=1`);
+};
+
+export const getMoviesByGenre = (genreId) => {
+  return api.get('/discover/movie', {
+    params: {
+      with_genres: genreId,
+      sort_by: 'popularity.desc'
+    }
+  });
+};

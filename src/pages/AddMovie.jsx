@@ -1,186 +1,215 @@
 import { useState } from 'react';
-import { 
-  Container, 
-  TextField, 
-  Button, 
-  Typography, 
+import {
   Box,
+  Container,
+  TextField,
+  Button,
+  Typography,
   Paper,
-  Grid
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import AddIcon from '@mui/icons-material/Add';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 function AddMovie() {
   const navigate = useNavigate();
-  const [movie, setMovie] = useState({
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [formData, setFormData] = useState({
     title: '',
-    description: '',
-    releaseDate: ''
+    overview: '',
+    releaseDate: '',
+    posterUrl: '',
+    backdropUrl: '',
+    genres: ''
   });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Film ajouté:', movie);
-    navigate('/');
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setMovie(prev => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      // Here you would typically make an API call to save the movie
+      // For now, we'll just simulate success
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setSuccess(true);
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+    } catch (err) {
+      setError('Une erreur est survenue lors de l\'ajout du film.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box sx={{ 
-        background: 'var(--gradient)',
-        padding: '40px 20px',
-        borderRadius: '30px',
-        marginBottom: 6,
-        textAlign: 'center',
-        position: 'relative',
-        overflow: 'hidden',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'url(/movie-pattern.png) repeat',
-          opacity: 0.1,
-        }
-      }}>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      pt: 12, 
+      pb: 6, 
+      backgroundColor: '#141414'
+    }}>
+      <Container maxWidth="md">
         <Typography 
-          variant="h3" 
-          gutterBottom
+          variant="h4" 
           sx={{ 
-            fontFamily: 'var(--heading-font)',
             color: 'white',
-            fontWeight: 800,
-            textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
-            mb: 3
+            mb: 4,
+            fontWeight: 600
           }}
         >
           Ajouter un nouveau film
         </Typography>
-      </Box>
 
-      <Container maxWidth="md">
         <Paper 
-          elevation={3} 
-          sx={{ 
-            p: 4, 
-            borderRadius: '20px',
-            background: 'white',
+          elevation={3}
+          sx={{
+            p: 4,
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.1)'
           }}
         >
-          <Box component="form" onSubmit={handleSubmit}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Titre du film"
-                  name="title"
-                  value={movie.title}
-                  onChange={handleChange}
-                  variant="outlined"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '&:hover fieldset': {
-                        borderColor: 'var(--secondary-color)',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: 'var(--secondary-color)',
-                      },
-                    },
-                  }}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  required
-                  multiline
-                  rows={4}
-                  label="Description"
-                  name="description"
-                  value={movie.description}
-                  onChange={handleChange}
-                  variant="outlined"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '&:hover fieldset': {
-                        borderColor: 'var(--secondary-color)',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: 'var(--secondary-color)',
-                      },
-                    },
-                  }}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Date de sortie"
-                  name="releaseDate"
-                  value={movie.releaseDate}
-                  onChange={handleChange}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '&:hover fieldset': {
-                        borderColor: 'var(--secondary-color)',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: 'var(--secondary-color)',
-                      },
-                    },
-                  }}
-                />
-              </Grid>
+          {success ? (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              Film ajouté avec succès!
+            </Alert>
+          ) : error ? (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          ) : null}
 
-              <Grid item xs={12}>
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  sx={{ 
-                    mt: 2,
-                    height: '56px',
-                    background: 'var(--gradient)',
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    fontFamily: 'var(--body-font)',
-                    '&:hover': {
-                      background: 'var(--gradient)',
-                      filter: 'brightness(110%)',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 20px rgba(1,180,228,0.3)',
-                    },
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  Ajouter le film
-                </Button>
-              </Grid>
-            </Grid>
-          </Box>
+          <form onSubmit={handleSubmit}>
+            <Box sx={{ display: 'grid', gap: 3 }}>
+              <TextField
+                name="title"
+                label="Titre du film"
+                value={formData.title}
+                onChange={handleChange}
+                required
+                fullWidth
+                sx={textFieldStyle}
+              />
+
+              <TextField
+                name="overview"
+                label="Synopsis"
+                value={formData.overview}
+                onChange={handleChange}
+                required
+                multiline
+                rows={4}
+                fullWidth
+                sx={textFieldStyle}
+              />
+
+              <TextField
+                name="releaseDate"
+                label="Date de sortie"
+                type="date"
+                value={formData.releaseDate}
+                onChange={handleChange}
+                required
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                sx={textFieldStyle}
+              />
+
+              <TextField
+                name="posterUrl"
+                label="URL de l'affiche"
+                value={formData.posterUrl}
+                onChange={handleChange}
+                required
+                fullWidth
+                sx={textFieldStyle}
+              />
+
+              <TextField
+                name="backdropUrl"
+                label="URL de l'image de fond"
+                value={formData.backdropUrl}
+                onChange={handleChange}
+                required
+                fullWidth
+                sx={textFieldStyle}
+              />
+
+              <TextField
+                name="genres"
+                label="Genres (séparés par des virgules)"
+                value={formData.genres}
+                onChange={handleChange}
+                required
+                fullWidth
+                sx={textFieldStyle}
+              />
+
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={loading}
+                startIcon={loading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
+                sx={{
+                  py: 1.5,
+                  bgcolor: '#e50914',
+                  '&:hover': {
+                    bgcolor: '#b2070f'
+                  },
+                  '&:disabled': {
+                    bgcolor: 'rgba(229,9,20,0.5)'
+                  }
+                }}
+              >
+                {loading ? 'Ajout en cours...' : 'Ajouter le film'}
+              </Button>
+            </Box>
+          </form>
         </Paper>
       </Container>
-    </Container>
+    </Box>
   );
 }
+
+// Styles for text fields
+const textFieldStyle = {
+  '& .MuiOutlinedInput-root': {
+    color: 'white',
+    '& fieldset': {
+      borderColor: 'rgba(255,255,255,0.23)',
+    },
+    '&:hover fieldset': {
+      borderColor: 'rgba(255,255,255,0.5)',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#e50914',
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: 'rgba(255,255,255,0.7)',
+    '&.Mui-focused': {
+      color: '#e50914',
+    },
+  },
+  '& .MuiOutlinedInput-input': {
+    '&::placeholder': {
+      color: 'rgba(255,255,255,0.5)',
+      opacity: 1,
+    },
+  },
+};
 
 export default AddMovie; 

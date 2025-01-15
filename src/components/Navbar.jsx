@@ -1,91 +1,115 @@
-import { AppBar, Toolbar, Typography, Button, Container, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import HomeIcon from '@mui/icons-material/Home';
+import { useState, useEffect } from 'react';
 
 function Navbar() {
   const location = useLocation();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const isActive = (path) => location.pathname === path;
 
   return (
     <AppBar 
-      position="static" 
-      sx={{ 
-        background: 'var(--gradient)',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+      position="fixed" 
+      className={`navbar ${isScrolled ? 'scrolled' : ''}`}
+      elevation={0}
+      sx={{
+        background: isScrolled ? 'rgb(20, 20, 20)' : 'linear-gradient(180deg, rgba(0,0,0,0.7) 10%, transparent)',
+        transition: 'background-color 0.3s ease',
       }}
     >
-      <Container maxWidth="xl">
-        <Toolbar sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between',
-          padding: { xs: '1rem 0' }
-        }}>
-          <Typography 
-            variant="h5" 
-            component={Link} 
-            to="/" 
-            sx={{ 
-              textDecoration: 'none', 
-              color: 'white',
+      <Container maxWidth={false}>
+        <Toolbar sx={{ px: { xs: 2, sm: 4 }, gap: 2 }}>
+          <Typography
+            component={Link}
+            to="/"
+            variant="h6"
+            sx={{
+              color: '#e50914',
+              textDecoration: 'none',
               fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              '&:hover': {
-                color: 'var(--secondary-color)'
-              }
+              fontSize: '1.8rem',
+              flexGrow: { xs: 1, md: 0 }
             }}
           >
-            🎬 JebbarFLIX
+            JEBBARFLIX
           </Typography>
-          
-          <Box sx={{ display: 'flex', gap: '1rem' }}>
-            <Button 
-              component={Link} 
-              to="/" 
-              startIcon={<HomeIcon />}
-              sx={{ 
+
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 3, ml: 4 }}>
+            <Button
+              component={Link}
+              to="/"
+              sx={{
                 color: 'white',
-                backgroundColor: isActive('/') ? 'rgba(255,255,255,0.1)' : 'transparent',
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.2)'
-                }
+                '&:hover': { opacity: 0.7 },
+                textTransform: 'none',
+                fontSize: '0.9rem'
               }}
             >
               Accueil
             </Button>
-            <Button 
-              component={Link} 
-              to="/recherche"
-              startIcon={<SearchIcon />}
-              sx={{ 
+            <Button
+              component={Link}
+              to="/search"
+              sx={{
                 color: 'white',
-                backgroundColor: isActive('/recherche') ? 'rgba(255,255,255,0.1)' : 'transparent',
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.2)'
-                }
+                '&:hover': { opacity: 0.7 },
+                textTransform: 'none',
+                fontSize: '0.9rem'
               }}
             >
-              Recherche
+              Rechercher
             </Button>
-            <Button 
-              component={Link} 
+            <Button
+              component={Link}
               to="/ajouter"
-              startIcon={<AddIcon />}
-              variant="contained"
-              sx={{ 
-                backgroundColor: isActive('/ajouter') ? '#0099c9' : 'var(--secondary-color)',
-                '&:hover': {
-                  backgroundColor: '#0099c9'
-                }
+              sx={{
+                color: 'white',
+                '&:hover': { opacity: 0.7 },
+                textTransform: 'none',
+                fontSize: '0.9rem'
               }}
+              startIcon={<AddIcon />}
             >
               Ajouter
             </Button>
           </Box>
+
+          <Box sx={{ flexGrow: 1 }} />
+
+          <IconButton
+            component={Link}
+            to="/search"
+            sx={{
+              color: 'white',
+              display: { xs: 'flex', md: 'none' }
+            }}
+          >
+            <SearchIcon />
+          </IconButton>
+
+          <IconButton
+            component={Link}
+            to="/ajouter"
+            sx={{
+              color: 'white',
+              display: { xs: 'flex', md: 'none' }
+            }}
+          >
+            <AddIcon />
+          </IconButton>
         </Toolbar>
       </Container>
     </AppBar>
