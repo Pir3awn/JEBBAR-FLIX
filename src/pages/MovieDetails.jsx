@@ -10,17 +10,12 @@ import {
   Fade,
   CircularProgress,
   Skeleton,
-  Alert,
-  Snackbar,
   Grid
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import CloseIcon from '@mui/icons-material/Close';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import StarOutlineIcon from '@mui/icons-material/StarOutline';
-import StarIcon from '@mui/icons-material/Star';
 import { getMovieDetails, getMovieVideos, getSimilarMovies } from '../services/api';
 
 function MovieDetails() {
@@ -33,41 +28,6 @@ function MovieDetails() {
   const [muted, setMuted] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [isStarred, setIsStarred] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-
-  // Check if movie is in favorites on load
-  useEffect(() => {
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    setIsStarred(favorites.some(fav => fav.id === Number(id)));
-  }, [id]);
-
-  // Handle favorites
-  const handleFavoriteClick = () => {
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    
-    if (isStarred) {
-      // Remove from favorites
-      const newFavorites = favorites.filter(fav => fav.id !== movie.id);
-      localStorage.setItem('favorites', JSON.stringify(newFavorites));
-      setSnackbarMessage('Retiré des favoris');
-    } else {
-      // Add to favorites
-      const newFavorite = {
-        id: movie.id,
-        title: movie.title,
-        poster_path: movie.poster_path,
-        vote_average: movie.vote_average,
-        release_date: movie.release_date
-      };
-      localStorage.setItem('favorites', JSON.stringify([...favorites, newFavorite]));
-      setSnackbarMessage('Ajouté aux favoris');
-    }
-    
-    setIsStarred(!isStarred);
-    setSnackbarOpen(true);
-  };
 
   useEffect(() => {
     const fetchMovieData = async () => {
@@ -409,58 +369,13 @@ function MovieDetails() {
                   fontWeight: 700,
                   color: 'white',
                   textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-                  mb: 2,
+                  mb: 3,
                   maxWidth: '800px',
                   animation: 'slideUp 0.8s ease'
                 }}
               >
                 {movie?.title}
               </Typography>
-
-              <Box sx={{ 
-                display: 'flex', 
-                gap: 2, 
-                mb: 3,
-                animation: 'slideUp 1s ease 0.2s',
-                opacity: 0,
-                animationFillMode: 'forwards'
-              }}>
-                <Button
-                  variant="contained"
-                  startIcon={<InfoOutlinedIcon />}
-                  sx={{
-                    bgcolor: 'white',
-                    color: 'black',
-                    '&:hover': {
-                      bgcolor: 'rgba(255,255,255,0.75)',
-                      transform: 'scale(1.05)'
-                    },
-                    px: 4,
-                    py: 1.5,
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  Plus d'infos
-                </Button>
-                <Button
-                  variant="contained"
-                  startIcon={isStarred ? <StarIcon /> : <StarOutlineIcon />}
-                  onClick={handleFavoriteClick}
-                  sx={{
-                    bgcolor: 'rgba(109, 109, 110, 0.7)',
-                    color: 'white',
-                    '&:hover': {
-                      bgcolor: 'rgba(109, 109, 110, 0.4)',
-                      transform: 'scale(1.05)'
-                    },
-                    px: 4,
-                    py: 1.5,
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  {isStarred ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                </Button>
-              </Box>
 
               <Box sx={{ 
                 display: 'flex', 
@@ -557,14 +472,6 @@ function MovieDetails() {
                 })}
               </Typography>
               <Typography sx={{ mb: 1 }}>
-                <span style={{ color: '#777' }}>Budget: </span>
-                {movie?.budget ? `${(movie.budget / 1000000).toFixed(1)} M$` : 'Non disponible'}
-              </Typography>
-              <Typography sx={{ mb: 1 }}>
-                <span style={{ color: '#777' }}>Recettes: </span>
-                {movie?.revenue ? `${(movie.revenue / 1000000).toFixed(1)} M$` : 'Non disponible'}
-              </Typography>
-              <Typography sx={{ mb: 1 }}>
                 <span style={{ color: '#777' }}>Langue originale: </span>
                 {movie?.original_language?.toUpperCase()}
               </Typography>
@@ -605,10 +512,7 @@ function MovieDetails() {
                 md: 'repeat(4, 1fr)',
                 lg: 'repeat(5, 1fr)'
               },
-              gap: 2.5,
-              '& > *': {
-                minHeight: '280px'
-              }
+              gap: 2.5
             }}>
               {similarMovies.slice(0, 10).map((movie) => (
                 <Box
@@ -633,7 +537,10 @@ function MovieDetails() {
                 >
                   <Box
                     component="img"
-                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                    src={movie.poster_path 
+                      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                      : 'https://via.placeholder.com/500x750?text=No+Image'
+                    }
                     alt={movie.title}
                     sx={{
                       position: 'absolute',
@@ -652,37 +559,28 @@ function MovieDetails() {
                       left: 0,
                       right: 0,
                       p: 2,
-                      background: 'linear-gradient(transparent, rgba(0,0,0,0.9) 30%, rgba(0,0,0,0.95))',
+                      background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 40%)',
                       opacity: 0,
-                      transform: 'translateY(20px)',
+                      transform: 'translateY(10px)',
                       transition: 'all 0.3s ease'
                     }}
                   >
-                    <Typography sx={{ 
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      mb: 1,
-                      textShadow: '0 2px 4px rgba(0,0,0,0.5)'
-                    }}>
+                    <Typography
+                      sx={{
+                        color: 'white',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        mb: 0.5,
+                        lineHeight: 1.2
+                      }}
+                    >
                       {movie.title}
                     </Typography>
-                    <Box sx={{ 
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1
-                    }}>
-                      <Typography sx={{ 
-                        color: '#46d369',
-                        fontSize: '0.9rem',
-                        fontWeight: 500
-                      }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography sx={{ color: '#46d369', fontSize: '0.8rem', fontWeight: 600 }}>
                         {Math.round(movie.vote_average * 10)}% Match
                       </Typography>
-                      <Typography sx={{ 
-                        color: '#777',
-                        fontSize: '0.9rem'
-                      }}>
+                      <Typography sx={{ color: '#fff', fontSize: '0.8rem' }}>
                         {movie.release_date?.split('-')[0]}
                       </Typography>
                     </Box>
@@ -693,22 +591,6 @@ function MovieDetails() {
           </Box>
         )}
       </Container>
-
-      {/* Add Snackbar for favorites feedback */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={() => setSnackbarOpen(false)} 
-          severity="success" 
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }
