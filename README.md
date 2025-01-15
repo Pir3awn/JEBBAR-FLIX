@@ -57,7 +57,7 @@ src/
 
 ## Auteur
 
-- JEBBAR Oussama
+- JEBBAR Yasser Abdelmoghit
 
 ## Licence
 
