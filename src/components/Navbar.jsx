@@ -1,9 +1,22 @@
-import { AppBar, Toolbar, Typography, Button, Container } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button, Container, Box } from '@mui/material';
+import { Link, useLocation } from 'react-router-dom';
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import HomeIcon from '@mui/icons-material/Home';
 
 function Navbar() {
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname === path;
+
   return (
-    <AppBar position="static" sx={{ backgroundColor: 'var(--primary-color)' }}>
+    <AppBar 
+      position="static" 
+      sx={{ 
+        background: 'var(--gradient)',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+      }}
+    >
       <Container maxWidth="xl">
         <Toolbar sx={{ 
           display: 'flex', 
@@ -18,22 +31,27 @@ function Navbar() {
               textDecoration: 'none', 
               color: 'white',
               fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
               '&:hover': {
                 color: 'var(--secondary-color)'
               }
             }}
           >
-            MovieDB
+            🎬 JebbarFLIX
           </Typography>
           
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <Box sx={{ display: 'flex', gap: '1rem' }}>
             <Button 
               component={Link} 
               to="/" 
+              startIcon={<HomeIcon />}
               sx={{ 
                 color: 'white',
+                backgroundColor: isActive('/') ? 'rgba(255,255,255,0.1)' : 'transparent',
                 '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.1)'
+                  backgroundColor: 'rgba(255,255,255,0.2)'
                 }
               }}
             >
@@ -42,10 +60,12 @@ function Navbar() {
             <Button 
               component={Link} 
               to="/recherche"
+              startIcon={<SearchIcon />}
               sx={{ 
                 color: 'white',
+                backgroundColor: isActive('/recherche') ? 'rgba(255,255,255,0.1)' : 'transparent',
                 '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.1)'
+                  backgroundColor: 'rgba(255,255,255,0.2)'
                 }
               }}
             >
@@ -54,17 +74,18 @@ function Navbar() {
             <Button 
               component={Link} 
               to="/ajouter"
+              startIcon={<AddIcon />}
               variant="contained"
               sx={{ 
-                backgroundColor: 'var(--secondary-color)',
+                backgroundColor: isActive('/ajouter') ? '#0099c9' : 'var(--secondary-color)',
                 '&:hover': {
                   backgroundColor: '#0099c9'
                 }
               }}
             >
-              Ajouter un film
+              Ajouter
             </Button>
-          </div>
+          </Box>
         </Toolbar>
       </Container>
     </AppBar>
