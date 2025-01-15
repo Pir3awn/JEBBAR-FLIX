@@ -1,6 +1,6 @@
 # JEBBARFLIX - Application de Gestion de Films
 
-Une application web moderne pour la gestion et la découverte de films, construite avec React.js et l'API TMDB.
+Une application web moderne pour la gestion et la découverte de films, construite avec Vite/React.js et l'API TMDB.
 
 ## Fonctionnalités
 
@@ -57,7 +57,7 @@ src/
 
 ## Auteur
 
-- JEBBAR Oussama
+- JEBBAR Yasser Abdelmoghit
 
 ## Licence
 
