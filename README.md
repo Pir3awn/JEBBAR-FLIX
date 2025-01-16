@@ -27,7 +27,7 @@ Une application web moderne pour la gestion et la découverte de films, construi
 
 1. Clonez le repository
 ```bash
-git clone https://github.com/votre-username/jebbarflix.git
+git clone https://github.com/Pir3awn/jebbarflix.git
 cd jebbarflix
 ```
 
