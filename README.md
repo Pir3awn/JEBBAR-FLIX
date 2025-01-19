@@ -1,5 +1,7 @@
 # JEBBARFLIX - Application de Gestion de Films
 
+Lien pour visiter le site : https://projet-efm.vercel.app/
+
 Une application web moderne pour la gestion et la découverte de films, construite avec Vite/React.js et l'API TMDB.
 
 ## Fonctionnalités
@@ -24,10 +26,6 @@ Une application web moderne pour la gestion et la découverte de films, construi
 ## Installation
 
 1. Clonez le repository
-```bash
-git clone https://github.com/votre-username/jebbarflix.git
-cd jebbarflix
-```
 
 2. Installez les dépendances
 ```bash
