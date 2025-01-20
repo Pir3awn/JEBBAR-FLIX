@@ -6,7 +6,9 @@ import {
   TextField,
   Button,
   Typography,
-  Paper
+  Paper,
+  Snackbar,
+  Alert
 } from '@mui/material';
 
 function AddMovie() {
@@ -14,8 +16,10 @@ function AddMovie() {
   const [formData, setFormData] = useState({
     title: '',
     overview: '',
-    releaseDate: ''
+    releaseDate: '',
+    id: Date.now()
   });
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,8 +31,23 @@ function AddMovie() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Nouveau film ajouté:', formData);
-    navigate('/');
+    
+    // Get existing movies from localStorage or initialize empty array
+    const existingMovies = JSON.parse(localStorage.getItem('localMovies') || '[]');
+    
+    // Add new movie to array
+    existingMovies.push(formData);
+    
+    // Save back to localStorage
+    localStorage.setItem('localMovies', JSON.stringify(existingMovies));
+    
+    // Show success message
+    setOpenSnackbar(true);
+    
+    // Navigate home after 2 seconds
+    setTimeout(() => {
+      navigate('/');
+    }, 2000);
   };
 
   return (
@@ -86,6 +105,16 @@ function AddMovie() {
           </form>
         </Paper>
       </Container>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={2000}
+        onClose={() => setOpenSnackbar(false)}
+      >
+        <Alert severity="success" sx={{ width: '100%' }}>
+          Film ajouté avec succès!
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

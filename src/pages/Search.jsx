@@ -93,7 +93,7 @@ function Search() {
       backgroundColor: '#141414',
       pt: { xs: 8, md: 12 }
     }}>
-      {/* Search Header */}
+      {/* Search */}
       <Container maxWidth="xl">
         <Box 
           component="form" 
@@ -133,7 +133,7 @@ function Search() {
             </IconButton>
           </Box>
 
-          {/* Suggestions Dropdown */}
+          {/* Suggestions */}
           {showSuggestions && suggestions.length > 0 && (
             <Box sx={{
               position: 'absolute',

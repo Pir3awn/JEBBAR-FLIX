@@ -39,7 +39,7 @@ body {
   z-index: 2;
 }
 
-/* Netflix-like scrollbar */
+/* netflix scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -67,7 +67,7 @@ body {
   }
 }
 
-/* Add smooth transitions */
+/* transitions*/
 * {
   transition: background-color var(--transition-base),
               transform var(--transition-base),
@@ -79,7 +79,7 @@ body {
   animation: fadeIn 0.5s ease-out;
 }
 
-/* Improve scrolling behavior */
+
 html {
   scroll-behavior: smooth;
 }

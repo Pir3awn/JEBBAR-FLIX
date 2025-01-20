@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Box, Typography, Container, IconButton } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { getPopularMovies, getMoviesByGenre } from '../services/api';
+import { getPopularMovies, getMoviesByGenre, getMovieVideos } from '../services/api';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import CloseIcon from '@mui/icons-material/Close';
 
 const GENRES = [
   { id: 28, name: "Action" },
@@ -19,6 +23,20 @@ function Home() {
   const [genreMovies, setGenreMovies] = useState({});
   const [loading, setLoading] = useState(true);
   const [featuredMovie, setFeaturedMovie] = useState(null);
+  const [featuredVideo, setFeaturedVideo] = useState(null);
+  const [muted, setMuted] = useState(true);
+  const [showVideo, setShowVideo] = useState(false);
+
+  // Auto-play effect
+  useEffect(() => {
+    if (featuredVideo && !showVideo) {
+      const timer = setTimeout(() => {
+        setShowVideo(true);
+      }, 3000); // Start playing after 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [featuredVideo, showVideo]);
 
   useEffect(() => {
     const fetchAllMovies = async () => {
@@ -27,8 +45,20 @@ function Home() {
         const popularResponse = await getPopularMovies();
         const popularMovies = popularResponse.data.results;
         setMovies(popularMovies);
+        
         // Set a random popular movie as featured
-        setFeaturedMovie(popularMovies[Math.floor(Math.random() * popularMovies.length)]);
+        const selectedMovie = popularMovies[Math.floor(Math.random() * popularMovies.length)];
+        setFeaturedMovie(selectedMovie);
+
+        // Fetch trailer for featured movie
+        if (selectedMovie) {
+          console.log('Fetching trailer for:', selectedMovie.title);
+          const videosResponse = await getMovieVideos(selectedMovie.id);
+          console.log('Video response:', videosResponse.data);
+          const trailer = videosResponse.data.results.find(v => v.type === 'Trailer') || videosResponse.data.results[0];
+          console.log('Selected trailer:', trailer);
+          setFeaturedVideo(trailer);
+        }
 
         const genrePromises = GENRES.map(genre => 
           getMoviesByGenre(genre.id)
@@ -91,17 +121,101 @@ function Home() {
           pointerEvents: 'none'
         }
       }}>
-        <Box
-          component="img"
-          src={`https://image.tmdb.org/t/p/original${featuredMovie.backdrop_path}`}
-          alt={featuredMovie.title}
-          sx={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center 20%'
-          }}
-        />
+        {showVideo && featuredVideo ? (
+          <Box sx={{ 
+            width: '100%', 
+            height: '100%', 
+            position: 'relative',
+            backgroundColor: '#000',
+            zIndex: 3
+          }}>
+            <Box sx={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+              overflow: 'hidden',
+            }}>
+              <iframe
+                src={`https://www.youtube.com/embed/${featuredVideo.key}?enablejsapi=1&autoplay=1&mute=1&controls=1&modestbranding=1&rel=0`}
+                title={`${featuredMovie.title} Trailer`}
+                frameBorder="0"
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  border: 'none'
+                }}
+              />
+            </Box>
+
+            {/* Video Controls */}
+            <Box sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              p: 2,
+              display: 'flex',
+              justifyContent: 'flex-end',
+              background: 'linear-gradient(rgba(0,0,0,0.7), transparent)',
+              zIndex: 4
+            }}>
+              <IconButton
+                onClick={() => setShowVideo(false)}
+                sx={{
+                  color: 'white',
+                  bgcolor: 'rgba(0,0,0,0.5)',
+                  '&:hover': { 
+                    bgcolor: 'rgba(0,0,0,0.7)',
+                    transform: 'scale(1.1)'
+                  },
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </Box>
+        ) : (
+          <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+            <Box
+              component="img"
+              src={`https://image.tmdb.org/t/p/original${featuredMovie.backdrop_path}`}
+              alt={featuredMovie.title}
+              sx={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center 20%'
+              }}
+            />
+            
+            {featuredVideo && (
+              <IconButton
+                onClick={() => setShowVideo(true)}
+                sx={{
+                  position: 'absolute',
+                  bottom: '25%',
+                  left: { xs: '4%', md: '60px' },
+                  color: 'white',
+                  bgcolor: 'rgba(255,255,255,0.1)',
+                  '&:hover': { 
+                    bgcolor: 'rgba(255,255,255,0.2)',
+                    transform: 'scale(1.1)'
+                  },
+                  transition: 'all 0.2s ease',
+                  zIndex: 2
+                }}
+              >
+                <PlayArrowIcon sx={{ fontSize: '2rem' }} />
+              </IconButton>
+            )}
+          </Box>
+        )}
         
         <Box sx={{
           position: 'absolute',

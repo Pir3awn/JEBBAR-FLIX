@@ -2,7 +2,6 @@ import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton } from 
 import { Link, useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
-import HomeIcon from '@mui/icons-material/Home';
 import { useState, useEffect } from 'react';
 
 function Navbar() {
